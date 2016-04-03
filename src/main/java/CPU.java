@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -7,6 +8,7 @@ import java.util.Queue;
  */
 public class CPU
 {
+    DecimalFormat df = new DecimalFormat("#.##");
     public Double clock = Application.preciseZero;
     public Queue<Process> readyQueue = new LinkedList<Process>();
     private  boolean available = true;
@@ -32,9 +34,7 @@ public class CPU
 
     public Double getClock()
     {
-        return new BigDecimal(clock)
-                .setScale(3, BigDecimal.ROUND_HALF_DOWN)
-                .doubleValue();
+        return Math.floor(clock * 10) / 10;
     }
 
     public void incrementClock(Scheduler scheduler)
@@ -46,7 +46,7 @@ public class CPU
             System.out.println("The current process about to run in the CPU is Process " + currentProcess.getId());
             currentProcess.run(this, scheduler);
             clock += Application.quantum;
-            System.out.println("Clock tick: " + clock);
+            System.out.println("Clock tick: " + df.format(clock));
         }
         else
             setFinished(true);

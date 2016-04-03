@@ -7,9 +7,6 @@ public class Scheduler
 {
     private  ArrayList<Process> pList = null;
     private int num;
-    public Integer pStarted;
-    public Integer pFinished;
-    public boolean schedulerEmpty = false;
 
     Scheduler(ArrayList<Process> pList, int num)
     {

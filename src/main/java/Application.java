@@ -1,4 +1,5 @@
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.SynchronousQueue;
@@ -12,12 +13,8 @@ import java.util.concurrent.SynchronousQueue;
 
 public class Application
 {
-    public static final Double quantum = new BigDecimal(0.001)
-            .setScale(3, BigDecimal.ROUND_HALF_DOWN)
-            .doubleValue();
-    public static final Double preciseZero = new BigDecimal(0)
-            .setScale(3, BigDecimal.ROUND_HALF_DOWN)
-            .doubleValue();
+    public static final Double quantum = Math.ceil(.1 * 10) / 10;
+    public static final Double preciseZero = Math.floor(0) / 10;
 
     public static void main(String[] args)
     {
@@ -26,17 +23,17 @@ public class Application
         double initTime = preciseZero;
         ArrayList<Process> pList = new ArrayList<Process>();
         Process firstProcess = new Process(0, preciseZero, preciseZero);
-        firstProcess.setService(firstProcess.serviceTime(random));
+        firstProcess.setServiceTime(firstProcess.serviceTime(random));
         pList.add(0, firstProcess);
 
         for (int i = 1; i < maxProcesses; i++)
         {
             Process process = new Process();
-            process.setInterArrival(process.interArrival(random));
-            process.setService(process.serviceTime(random));
+            process.setInterArrivalTime(process.interArrivalTime(random));
+            process.setServiceTime(process.serviceTime(random));
             process.setId(i);
 
-            initTime += process.getInterArrival();
+            initTime += process.getInterArrivalTime();
 
             process.setArrivalTime(initTime);
             pList.add(i, process);

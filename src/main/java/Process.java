@@ -10,32 +10,32 @@ enum State {ARRIVED, READY, WAITING, RUNNING, EXECUTED}
 public class Process
 {
     private int id;
-    private Double interArrival;
-    private Double service;
+    private Double interArrivalTime;
+    private Double serviceTime;
     private Double arrivalTime;
-    private Double startTime;
-    private Double endTime;
-    private Double waitTime;
-    private Double turnTime;
+    private Double startTime = Application.preciseZero;
+    private Double endTime = Application.preciseZero;
+    private Double waitTime = Application.preciseZero;
+    private Double turnTime = Application.preciseZero;
     private State pState = null;
 
     Process() {}
 
-    Process(int id, Double arrivalTime, Double interArrival)
+    Process(int id, Double arrivalTime, Double interArrivalTime)
     {
         this.id = id;
-        this.arrivalTime = new BigDecimal(arrivalTime).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
-        this.interArrival = new BigDecimal(interArrival).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.arrivalTime = Math.floor(arrivalTime * 10) / 10;
+        this.interArrivalTime = Math.floor(interArrivalTime * 10) / 10;
     }
 
-    void setInterArrival(Double interArrival)
+    void setInterArrivalTime(Double interArrivalTime)
     {
-        this.interArrival = new BigDecimal(interArrival).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.interArrivalTime = Math.floor(interArrivalTime * 10) / 10;
     }
 
-    Double getInterArrival()
+    Double getInterArrivalTime()
     {
-        return interArrival;
+        return interArrivalTime;
     }
 
     void setId(int id)
@@ -48,26 +48,26 @@ public class Process
         return id;
     }
 
-    void setService(Double service)
+    void setServiceTime(Double serviceTime)
     {
-        this.service = new BigDecimal(service).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.serviceTime = Math.floor(serviceTime * 10) / 10;
     }
 
-    private Double getService()
+    private Double getServiceTime()
     {
-        return service;
+        return serviceTime;
     }
 
     void setArrivalTime(Double arrivalTime)
     {
-        this.arrivalTime = new BigDecimal(arrivalTime).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.arrivalTime = Math.floor(arrivalTime * 10) / 10;
     }
 
     private Double getArrivalTime() {return arrivalTime;}
 
     void setWaitTime(Double waitTime)
     {
-        this.waitTime = new BigDecimal(waitTime).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.waitTime = Math.floor(waitTime * 10) / 10;
     }
 
     Double getWaitTime()
@@ -77,7 +77,7 @@ public class Process
 
     void setTurnTime(Double turnTime)
     {
-        this.turnTime = new BigDecimal(turnTime).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.turnTime = Math.floor(turnTime * 10) / 10;
     }
 
     Double getTurnTime()
@@ -87,7 +87,7 @@ public class Process
 
     private void setStartTime(Double startTime)
     {
-        this.startTime = new BigDecimal(startTime).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.startTime = Math.floor(startTime * 10) / 10;
     }
 
     private Double getStartTime()
@@ -97,7 +97,7 @@ public class Process
 
     private void setEndTime(Double endTime)
     {
-        this.endTime = new BigDecimal(endTime).setScale(3, BigDecimal.ROUND_HALF_UP).doubleValue();
+        this.endTime = Math.floor(endTime * 10) / 10;
     }
 
     private Double getEndTime()
@@ -116,18 +116,14 @@ public class Process
     }
 
 
-    Double interArrival(Random random)
+    Double interArrivalTime(Random random)
     {
-        return new BigDecimal((-0.2 * Math.log(1 - random.nextDouble())))
-                .setScale(3, BigDecimal.ROUND_HALF_UP)
-                .doubleValue();
+        return Math.floor( (-0.2 * Math.log(1 - random.nextDouble() ) ) * 10) / 10;
     }
 
     Double serviceTime(Random random)
     {
-        return new BigDecimal((2 + ( (5-2) * random.nextDouble())))
-                .setScale(3, BigDecimal.ROUND_HALF_UP)
-                .doubleValue();
+        return Math.floor( (2 + ( (5-2) * random.nextDouble() ) ) * 10) / 10;
     }
 
     boolean isReady(CPU cpu)
@@ -147,18 +143,18 @@ public class Process
     {
         cpu.setAvailable(false);
         setpState(State.RUNNING);
-        if (getStartTime() == Application.preciseZero)
+        if (getStartTime().equals(Application.preciseZero) && getId() != 0)
         {
             setStartTime(cpu.getClock());
         }
         System.out.println("Process " + getId() + " is executing in CPU. It's original start time was "
-        + getStartTime() + " and it's current service time remaining is " + getService());
-        while (getService() > Application.preciseZero)
+                + getStartTime() + " and it's current service time remaining is " + getServiceTime());
+        if (getServiceTime() > Application.preciseZero)
         {
-            setService((getService()) - Application.quantum);
+            setServiceTime((getServiceTime()) - Application.quantum);
         }
-        System.out.println("Process " + getId() + " now has a service time of: " + getService());
-        if (getService() == Application.preciseZero)
+        System.out.println("Process " + getId() + " now has a service time of: " + getServiceTime());
+        if (getServiceTime().equals(Application.preciseZero))
         {
             setEndTime(cpu.getClock());
             setpState(State.EXECUTED);
@@ -178,6 +174,6 @@ public class Process
     @Override
     public String toString()
     {
-        return "Process id: " + getId() + "\n Arrival time : " + getArrivalTime() + "\n Service time : " + getService();
+        return "Process id: " + getId() + "\n Arrival time : " + getArrivalTime() + "\n Service time : " + getServiceTime();
     }
 }
