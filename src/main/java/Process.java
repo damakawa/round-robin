@@ -1,41 +1,29 @@
-import java.math.BigDecimal;
-import java.util.Random;
-
 /**
  * Created by Lanae on 3/9/2016.
  */
 
 enum State {ARRIVED, READY, WAITING, RUNNING, EXECUTED}
 
-public class Process
+class Process
 {
-    private int id;
-    private Double interArrivalTime;
-    private Double serviceTime;
-    private Double arrivalTime;
-    private Double startTime = Application.preciseZero;
-    private Double endTime = Application.preciseZero;
-    private Double waitTime = Application.preciseZero;
-    private Double turnTime = Application.preciseZero;
-    private State pState = null;
+     int id;
+     double interArrivalTime = 0.0;
+     double origServiceTime = 0.0;
+     double currentServiceTime = 0.0;
+     double arrivalTime = 0.0;
+     double startTime = 0.0;
+     double endTime = 0.0;
+     double waitTime = 0.0;
+     double turnTime = 0.0;
+     State pState = null;
 
     Process() {}
 
-    Process(int id, Double arrivalTime, Double interArrivalTime)
+    Process(int id, double arrivalTime, double interArrivalTime)
     {
         this.id = id;
-        this.arrivalTime = Math.floor(arrivalTime * 10) / 10;
-        this.interArrivalTime = Math.floor(interArrivalTime * 10) / 10;
-    }
-
-    void setInterArrivalTime(Double interArrivalTime)
-    {
-        this.interArrivalTime = Math.floor(interArrivalTime * 10) / 10;
-    }
-
-    Double getInterArrivalTime()
-    {
-        return interArrivalTime;
+        this.arrivalTime = arrivalTime;
+        this.interArrivalTime = interArrivalTime;
     }
 
     void setId(int id)
@@ -48,59 +36,80 @@ public class Process
         return id;
     }
 
-    void setServiceTime(Double serviceTime)
+    void setInterArrivalTime(double interArrivalTime)
     {
-        this.serviceTime = Math.floor(serviceTime * 10) / 10;
+        this.interArrivalTime = interArrivalTime;
     }
 
-    private Double getServiceTime()
+    double getInterArrivalTime()
     {
-        return serviceTime;
+        return interArrivalTime;
     }
 
-    void setArrivalTime(Double arrivalTime)
+     void setCurrentServiceTime(double currentServiceTime)
     {
-        this.arrivalTime = Math.floor(arrivalTime * 10) / 10;
+        this.currentServiceTime = currentServiceTime;
     }
 
-    private Double getArrivalTime() {return arrivalTime;}
-
-    void setWaitTime(Double waitTime)
+     double getCurrentServiceTime()
     {
-        this.waitTime = Math.floor(waitTime * 10) / 10;
+        return currentServiceTime;
     }
 
-    Double getWaitTime()
+    void setOrigServiceTime(double origServiceTime)
+    {
+        this.origServiceTime = origServiceTime; 
+        this.setCurrentServiceTime(getOrigServiceTime());
+    }
+
+     double getOrigServiceTime()
+    {
+        return origServiceTime;
+    }
+
+    void setArrivalTime(double arrivalTime)
+    {
+        this.arrivalTime = arrivalTime; //Math.floor(arrivalTime * Application.precisionNumber) / Application.precisionNumber;
+    }
+
+     double getArrivalTime() {return arrivalTime;}
+
+     void setWaitTime(double waitTime)
+    {
+        this.waitTime = waitTime; //Math.floor(waitTime * Application.precisionNumber) / Application.precisionNumber;
+    }
+
+     double getWaitTime()
     {
         return waitTime;
     }
 
-    void setTurnTime(Double turnTime)
+     void setTurnTime(double turnTime)
     {
-        this.turnTime = Math.floor(turnTime * 10) / 10;
+        this.turnTime = turnTime; //Math.floor(turnTime * Application.precisionNumber) / Application.precisionNumber;
     }
 
-    Double getTurnTime()
+     double getTurnTime()
     {
         return turnTime;
     }
 
-    private void setStartTime(Double startTime)
+     void setStartTime(double startTime)
     {
-        this.startTime = Math.floor(startTime * 10) / 10;
+        this.startTime = startTime; //Math.floor(startTime * Application.precisionNumber) / Application.precisionNumber;
     }
 
-    private Double getStartTime()
+     double getStartTime()
     {
         return startTime;
     }
 
-    private void setEndTime(Double endTime)
+     void setEndTime(double endTime)
     {
-        this.endTime = Math.floor(endTime * 10) / 10;
+        this.endTime = endTime; //Math.floor(endTime * Application.precisionNumber) / Application.precisionNumber;
     }
 
-    private Double getEndTime()
+     double getEndTime()
     {
         return endTime;
     }
@@ -116,15 +125,6 @@ public class Process
     }
 
 
-    Double interArrivalTime(Random random)
-    {
-        return Math.floor( (-0.2 * Math.log(1 - random.nextDouble() ) ) * 10) / 10;
-    }
-
-    Double serviceTime(Random random)
-    {
-        return Math.floor( (2 + ( (5-2) * random.nextDouble() ) ) * 10) / 10;
-    }
 
     boolean isReady(CPU cpu)
     {
@@ -139,41 +139,79 @@ public class Process
         }
     }
 
-    public void run(CPU cpu, Scheduler scheduler)
+    void run(CPU cpu, Scheduler scheduler)
     {
         cpu.setAvailable(false);
         setpState(State.RUNNING);
-        if (getStartTime().equals(Application.preciseZero) && getId() != 0)
+
+        if (getStartTime() == 0 && getId() != 0)
         {
             setStartTime(cpu.getClock());
         }
+
         System.out.println("Process " + getId() + " is executing in CPU. It's original start time was "
-                + getStartTime() + " and it's current service time remaining is " + getServiceTime());
-        if (getServiceTime() > Application.preciseZero)
+                + getStartTime() + " and its current service time remaining is " + getCurrentServiceTime());
+
+        if (Application.remQuantum > 0)
         {
-            setServiceTime((getServiceTime()) - Application.quantum);
+            if (getCurrentServiceTime() > Application.remQuantum)
+            {
+                setCurrentServiceTime(getCurrentServiceTime() - Application.remQuantum);
+                cpu.setClock(cpu.getClock() + Application.remQuantum);
+                Application.remQuantum = 0;
+            }
+            else
+            {
+                double temp = Application.remQuantum - getCurrentServiceTime();
+                setCurrentServiceTime(0);
+                cpu.setClock(cpu.getClock() + temp);
+                Application.remQuantum =- temp;
+            }
+
         }
-        System.out.println("Process " + getId() + " now has a service time of: " + getServiceTime());
-        if (getServiceTime().equals(Application.preciseZero))
+
+        if (getCurrentServiceTime() >= 1)
+        {
+            setCurrentServiceTime((getCurrentServiceTime()) - Application.quantum);
+            cpu.setClock(cpu.getClock() + Application.quantum);
+            System.out.println("After last quantum, Process " + getId() + " now has a service time of: " + getCurrentServiceTime());
+            System.out.println("After last quantum, Clock time is now : " + cpu.getClock());
+        }
+
+        if (getCurrentServiceTime() < 1 && getCurrentServiceTime() > 0)
+        {
+            cpu.setClock(cpu.getClock() + getCurrentServiceTime());
+            Application.remQuantum = getCurrentServiceTime();
+            setCurrentServiceTime(0);
+        }
+
+        if (getCurrentServiceTime() == 0)
         {
             setEndTime(cpu.getClock());
+            setTurnTime(getEndTime() - getStartTime());
+            setWaitTime(getTurnTime() - getOrigServiceTime());
             setpState(State.EXECUTED);
-            System.out.println("Process " + getId() + " has finished executing. It's end time is " + getEndTime());
+            scheduler.addToFinishedList(this);
+            System.out.println("Process " + getId() + " has finished executing. Its end time is " + getEndTime());
         }
         else
         {
             setpState(State.READY);
-            scheduler.addTopList(this);
-            //cpu.readyQueue.add(this);
+            //scheduler.addTopList(this);
+            cpu.readyQueue.add(this);
             System.out.println("Process " + getId() + " has not finished executing. " +
                     "It is being added back to the ready queue");
         }
+
         cpu.setAvailable(true);
     }
 
     @Override
     public String toString()
     {
-        return "Process id: " + getId() + "\n Arrival time : " + getArrivalTime() + "\n Service time : " + getServiceTime();
+        return "Process id: " + getId() + "\n Interarrival Time : " + getInterArrivalTime() +
+                "\n Arrival time : " + getArrivalTime() + "\n Service time : " + getOrigServiceTime()
+                + "\n Start time : " + getStartTime() + "\n End time : " + getEndTime() + "\n Turnaround time: " + getTurnTime()
+                + "\n Wait time: " + getWaitTime();
     }
 }
