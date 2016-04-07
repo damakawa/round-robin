@@ -1,31 +1,32 @@
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.Collections;
+import java.util.Comparator;
 
 /**
  * Created by Lanae on 3/31/2016.
  */
 class Scheduler
 {
-    private  ArrayList<Process> pList = null;
-    private Queue<Process> finishedProcesses= new LinkedList<Process>();
+    private ArrayList<Process> pList = null;
+    private ArrayList<Process> finishedProcesses= new ArrayList<Process>();
 
     Scheduler(ArrayList<Process> pList)
     {
         this.pList = pList;
     }
 
-    void addTopList(Process process)
+    ArrayList<Process> getFinishedProcesses()
     {
-        pList.add(process);
+        sortPList(finishedProcesses);
+        return finishedProcesses;
+    }
+
+    private void sortPList(ArrayList<Process> pList)
+    {
+        Collections.sort(pList, (Process p1, Process p2) -> p1.compareTo(p2));
     }
 
     void addToFinishedList(Process process) {finishedProcesses.add(process);}
-
-    Queue<Process> getFinishedProcesses()
-    {
-        return finishedProcesses;
-    }
 
     void checkArrival(CPU cpu)
     {
@@ -41,22 +42,8 @@ class Scheduler
                 pList.get(i).setpState(State.READY);
                 cpu.readyQueue.add(pList.get(i));
                 pList.remove(i);
+                i--;
             }
         }
-        for (int j = 0; j < pList.size(); j++) //clean up empty spots
-        {
-            if (pList.get(j) == null)
-            {
-                if ( (j + 1) < pList.size())
-                {
-                    pList.add(j, pList.get(j + 1));
-                }
-                else
-                {
-                    pList.remove(j);
-                }
-            }
-        }
-
     }
 }

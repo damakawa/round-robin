@@ -6,11 +6,10 @@ import java.util.Queue;
  */
 class CPU
 {
-    private double clock = 0.0; //Application.preciseZero;
+    private double clock = 0.0;
     Queue<Process> readyQueue = new LinkedList<Process>();
     private  boolean available = true;
     private boolean finished = false;
-    private Process currentProcess = null;
 
     CPU() {}
 
@@ -31,7 +30,7 @@ class CPU
 
     void setClock(double clock)
     {
-        this.clock = clock; //(double)Math.floor(clock * Application.precisionNumber) / Application.precisionNumber;
+        this.clock = clock;
     }
 
     double getClock()
@@ -44,9 +43,7 @@ class CPU
         scheduler.checkArrival(this);
         if (readyQueue.size() != 0)
         {
-            currentProcess = readyQueue.remove();
-            System.out.println("The current process about to run in the CPU is Process " + currentProcess.getId());
-            currentProcess.run(this, scheduler);
+            readyQueue.remove().run(this, scheduler);
         }
         else
             setFinished(true);
@@ -54,27 +51,15 @@ class CPU
 
     private void addContextSwitch()
     {
-        System.out.println("Incrementing current clock " + getClock() + " by context switch " + Application.contextSwitch);
         setClock(getClock() + Application.contextSwitch);
-        System.out.println("After last context switch, Clock time now " + getClock());
     }
 
     void run(Scheduler scheduler)
     {
-        System.out.println("CPU clock starts.");
-
         while (!finished)
         {
             incrementClock(scheduler);
             addContextSwitch();
-        }
-        if (finished)
-        {
-            System.out.println("Finished processes: ");
-            for (Process p : scheduler.getFinishedProcesses())
-            {
-                System.out.println("\n" + p);
-            }
         }
     }
 }
