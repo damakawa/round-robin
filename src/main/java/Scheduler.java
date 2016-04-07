@@ -9,6 +9,7 @@ class Scheduler
 {
     private ArrayList<Process> pList = null;
     private ArrayList<Process> finishedProcesses= new ArrayList<Process>();
+    private int finishedCount = 0;
 
     Scheduler(ArrayList<Process> pList)
     {
@@ -26,7 +27,16 @@ class Scheduler
         Collections.sort(pList, (Process p1, Process p2) -> p1.compareTo(p2));
     }
 
-    void addToFinishedList(Process process) {finishedProcesses.add(process);}
+    void addToFinishedList(Process process)
+    {
+        finishedProcesses.add(process);
+        finishedCount++;
+    }
+
+    int getFinishedCount()
+    {
+        return finishedCount;
+    }
 
     void checkArrival(CPU cpu)
     {
@@ -34,7 +44,6 @@ class Scheduler
         {
             return;
         }
-
         for (int i = 0; i < pList.size(); i++)
         {
             if (pList.get(i).isReady(cpu))

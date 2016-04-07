@@ -46,7 +46,26 @@ class CPU
             readyQueue.remove().run(this, scheduler);
         }
         else
-            setFinished(true);
+        {
+            // this handles idle CPU time when there is no current process in the ready queue
+            for (int i = 0; i < 10 * Application.arrivalControl; i++)
+            {
+                setClock(this.clock + Application.quantum);
+                //System.out.println("No processes in queue. Clock is now " + getClock());
+                scheduler.checkArrival(this);
+                //System.out.println("Checked arrival queue. Current size =  " + readyQueue.size());
+                if (readyQueue.size() != 0)
+                {
+                    readyQueue.remove().run(this, scheduler);
+                    return;
+                }
+            }
+            // eventually shut off CPU after a certain time if no new processes arrive
+            if (readyQueue.size() == 0)
+            {
+                setFinished(true);
+            }
+        }
     }
 
     private void addContextSwitch()
@@ -56,10 +75,19 @@ class CPU
 
     void run(Scheduler scheduler)
     {
-        while (!finished)
+        while (!finished && scheduler.getFinishedCount() < 100)
         {
             incrementClock(scheduler);
             addContextSwitch();
         }
+
+        Application.printFinal20Header();
+        for (int i = 0; i <20; i++)
+        {
+            Application.printStartEndWait(scheduler.getFinishedProcesses().get(i));
+        }
+        Application.printTotalProcGenerated();
+        Application.printInterArrivalConstant();
+        Application.printAverages(scheduler.getFinishedProcesses());
     }
 }

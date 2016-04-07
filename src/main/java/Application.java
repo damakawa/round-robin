@@ -3,7 +3,7 @@ import java.util.*;
 /**
  * Programmer: Lanae Blethen Kawa
  * Creation Date: 3/9/16
- * Date Last Modified: 4/6/16
+ * Date Last Modified: 4/7/16
  * CSC440 Operating Systems
  */
 
@@ -12,10 +12,12 @@ public class Application
     static final double quantum = 1.0;
     static double remQuantum = 0.0;
     static final double contextSwitch = 0.0;
+    static final double arrivalControl = 5.0;
+    private static final int maxProcesses = 500;
 
     public static void main(String[] args)
     {
-        int maxProcesses = 100;
+
         ArrayList<Process> pList = new ArrayList<Process>();
         Process firstProcess = new Process(0, 0.0, 0.0);
         firstProcess.setOrigServiceTime(genServiceTime());
@@ -36,15 +38,9 @@ public class Application
 
         cpu.run(scheduler);
 
-        for (int i = 0; i <20; i++)
-        {
-            printStartEndWait(scheduler.getFinishedProcesses().get(i));
-        }
-
-        printAverages(scheduler.getFinishedProcesses());
-
     }
 
+    // function for truncating doubles to two decimal places
     static double cleanDouble(double dirtyDouble)
     {
         int temp = (int)(dirtyDouble * 100.0);
@@ -53,7 +49,7 @@ public class Application
 
     private static double genInterArrivalTime()
     {
-        return cleanDouble(-0.2 * Math.log(1 - Math.random() ));
+        return cleanDouble(-arrivalControl * Math.log(1 - Math.random() ));
     }
 
     private static double genServiceTime()
@@ -73,6 +69,17 @@ public class Application
         return cleanDouble(sum / count);
     }
 
+    private static double averageInterArrivalTime(ArrayList<Process> finishedProcesses)
+    {
+        double sum = 0.0;
+        double count = 0.0;
+        for (Process p : finishedProcesses)
+        {
+            sum += p.getInterArrivalTime();
+            count++;
+        }
+        return cleanDouble(sum / count);
+    }
     private static double averageWaitTime(ArrayList<Process> finishedProcesses)
     {
         double sum = 0.0;
@@ -97,18 +104,42 @@ public class Application
         return cleanDouble(sum / count);
     }
 
-    private static void printStartEndWait(Process p)
+    static void printFinal20Header()
     {
-        System.out.println(p);
-/*        System.out.println("Process " + p.getId() + " Start time: " + p.getStartTime() + " End time: "
-            + p.getEndTime() + " Wait time: " + p.getWaitTime());*/
+        String leftStringAlignFormat = "| %-16s | %-16s | %-16s | %-16s | %-16s | %-16s | %-16s | %-16s |%n";
+        System.out.format(leftStringAlignFormat, "ProcessID", "Service", "InterArrvl", "Arrival" , "Start",
+                "End", "Turnaround", "Wait");
     }
 
-    private static void printAverages(ArrayList<Process> pList)
+    static void printStartEndWait(Process p)
     {
-        System.out.println("For " + pList.size() + " processes\n Average service time was "
-                + averageServiceTime(pList) + "\n Average wait time: " + averageWaitTime(pList)
-                + "\n Average turnaround time: " + averageTurnaroundTime(pList));
+        String leftNumAlignFormat = "| %-16d | %-16.2f | %-16.2f | %-16.2f | %-16.2f | %-16.2f | %-16.2f | %-16.2f |%n";
+        String divider = "------------------------------------------------------------------------------------------------"
+                + "---------------------------------------------------------";
+         System.out.println(divider);
+        System.out.format(leftNumAlignFormat, p.getId(), p.getOrigServiceTime(), p.getInterArrivalTime(),
+                p.getArrivalTime(), p.getStartTime(), p.getEndTime(), p.getTurnTime(), p.getWaitTime());
     }
 
+    static void printAverages(ArrayList<Process> pList)
+    {
+        String leftStringAlignFormat = "%n%n%n| %-16s | %-16s | %-16s | %-16s | %-16s |%n";
+        String leftNumAlignFormat = "| %-16d | %-16.2f | %-16.2f | %-16.2f | %-16.2f | %n ";
+        String divider = "------------------------------------------------------------------------------------------------";
+        System.out.format(leftStringAlignFormat, "NumProcesses", "AvgService", "AvgInterArrival" ,
+                "AvgWaitTime", "AvgTrnTime");
+        System.out.println(divider);
+        System.out.format(leftNumAlignFormat, pList.size(), averageServiceTime(pList), averageInterArrivalTime(pList),
+                averageWaitTime(pList), averageTurnaroundTime(pList));
+    }
+
+    static void printTotalProcGenerated()
+    {
+        System.out.println("\n\n\nThe total number of processes running in CPU: " + maxProcesses);
+    }
+
+    static void printInterArrivalConstant()
+    {
+        System.out.println("The constant used for the Inter-Arrival random generation formula is: " + arrivalControl);
+    }
 }
